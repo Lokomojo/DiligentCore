@@ -18,6 +18,8 @@ set(SOURCE
     src/HLSLTokenizer.cpp
 )
 
+option(DILIGENT_USE_STATIC_DXC "Link DXC statically and bypass dlopen" OFF)
+
 set(DXC_SUPPORTED FALSE)
 if((PLATFORM_WIN32 AND NOT MINGW_BUILD) OR PLATFORM_UNIVERSAL_WINDOWS OR PLATFORM_LINUX)
     set(DXC_SUPPORTED TRUE)
@@ -142,10 +144,18 @@ if (DXC_SUPPORTED)
         target_compile_options(Diligent-ShaderTools PRIVATE -fms-extensions)
     endif()
 
-    if (NOT PLATFORM_WIN32)
-        if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
-            CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-            target_link_libraries(Diligent-ShaderTools PRIVATE dl)
+    if (DILIGENT_USE_STATIC_DXC)
+        target_compile_definitions(Diligent-ShaderTools PRIVATE DILIGENT_USE_STATIC_DXC=1)
+        target_link_libraries(Diligent-ShaderTools
+                PUBLIC
+                LLVMSupport
+                dxcompiler
+        )
+    else()
+        if (NOT PLATFORM_WIN32)
+            if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+                target_link_libraries(Diligent-ShaderTools PRIVATE dl)
+            endif()
         endif()
     endif()
 endif()
@@ -176,6 +186,13 @@ if(ENABLE_SPIRV)
     endif()
 
     if (${USE_SPIRV_TOOLS})
+        if (DILIGENT_USE_STATIC_DXC)
+            cmake_policy(SET CMP0079 NEW)
+            target_link_libraries(SPIRV-Tools-opt
+                    PUBLIC
+                    LLVMSupport
+            )
+        endif()
         target_link_libraries(Diligent-ShaderTools
         PRIVATE
             SPIRV-Tools-opt
