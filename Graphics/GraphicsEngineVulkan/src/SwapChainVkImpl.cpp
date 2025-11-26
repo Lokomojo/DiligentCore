@@ -102,32 +102,32 @@ void SwapChainVkImpl::CreateSurface()
 
         err = vkCreateMetalSurfaceEXT(m_Instance->GetVkInstance(), &surfaceCreateInfo, NULL, &m_VkSurface);
     }
-#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-    if (m_Window.pDisplay != nullptr)
+#elif defined(VK_USE_PLATFORM_WAYLAND_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) || defined(VK_USE_PLATFORM_XLIB_KHR)
+	bool foundPlatform = false;
+#if defined(VK_USE_PLATFORM_WAYLAND_KHR)
+    if (m_Window.pDisplay != nullptr && m_Window.pWaylandSurface != nullptr)
     {
         VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo{};
         surfaceCreateInfo.sType   = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
-        surfaceCreateInfo.display = reinterpret_cast<struct wl_display*>(m_Window.pDisplay);
-        surfaceCreateInfo.Surface = reinterpret_cast<struct wl_surface*>(nullptr);
-
+        surfaceCreateInfo.display = static_cast<wl_display*>(m_Window.pDisplay);
+        surfaceCreateInfo.surface = static_cast<wl_surface*>(m_Window.pWaylandSurface);
         err = vkCreateWaylandSurfaceKHR(m_Instance->GetVkInstance(), &surfaceCreateInfo, nullptr, &m_VkSurface);
+        foundPlatform = true;
     }
-#elif defined(VK_USE_PLATFORM_XCB_KHR) || defined(VK_USE_PLATFORM_XLIB_KHR)
-
-#    if defined(VK_USE_PLATFORM_XCB_KHR)
-    if (m_Window.pXCBConnection != nullptr && m_Window.WindowId != 0)
+#endif
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+    if (!foundPlatform && m_Window.pXCBConnection != nullptr && m_Window.WindowId != 0)
     {
         VkXcbSurfaceCreateInfoKHR surfaceCreateInfo{};
         surfaceCreateInfo.sType      = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
         surfaceCreateInfo.connection = reinterpret_cast<xcb_connection_t*>(m_Window.pXCBConnection);
         surfaceCreateInfo.window     = m_Window.WindowId;
-
         err = vkCreateXcbSurfaceKHR(m_Instance->GetVkInstance(), &surfaceCreateInfo, nullptr, &m_VkSurface);
+        foundPlatform = true;
     }
-#    endif
-
-#    if defined(VK_USE_PLATFORM_XLIB_KHR)
-    if ((m_Window.pDisplay != nullptr && m_Window.WindowId != 0) && m_VkSurface == VK_NULL_HANDLE)
+#endif
+#if defined(VK_USE_PLATFORM_XLIB_KHR)
+    if (!foundPlatform && (m_Window.pDisplay != nullptr && m_Window.WindowId != 0) && m_VkSurface == VK_NULL_HANDLE)
     {
         VkXlibSurfaceCreateInfoKHR surfaceCreateInfo{};
         surfaceCreateInfo.sType  = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
@@ -135,9 +135,9 @@ void SwapChainVkImpl::CreateSurface()
         surfaceCreateInfo.window = m_Window.WindowId;
 
         err = vkCreateXlibSurfaceKHR(m_Instance->GetVkInstance(), &surfaceCreateInfo, nullptr, &m_VkSurface);
+        foundPlatform = true;
     }
-#    endif
-
+#endif
 #endif
 
     CHECK_VK_ERROR_AND_THROW(err, "Failed to create OS-specific surface");
