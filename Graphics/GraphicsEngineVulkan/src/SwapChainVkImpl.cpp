@@ -414,6 +414,11 @@ void SwapChainVkImpl::CreateVulkanSwapChain()
         }
     }
 
+    if (m_SwapChainDesc.ColorSpace != COLOR_SPACE_UNKNOWN)
+    {
+        ColorSpace = ColorSpaceToVkColorSpace(m_SwapChainDesc.ColorSpace);
+    }
+
     VkSwapchainKHR oldSwapchain = m_VkSwapChain;
     m_VkSwapChain               = VK_NULL_HANDLE;
 

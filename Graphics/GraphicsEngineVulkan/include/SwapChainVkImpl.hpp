@@ -98,9 +98,11 @@ private:
 
     Uint32 m_DesiredBufferCount = 0;
 
-    VkSurfaceKHR   m_VkSurface     = VK_NULL_HANDLE;
-    VkSwapchainKHR m_VkSwapChain   = VK_NULL_HANDLE;
-    VkFormat       m_VkColorFormat = VK_FORMAT_UNDEFINED;
+    VkSurfaceKHR    m_VkSurface       = VK_NULL_HANDLE;
+    VkSwapchainKHR  m_VkSwapChain     = VK_NULL_HANDLE;
+    VkFormat        m_VkColorFormat   = VK_FORMAT_UNDEFINED;
+    VkColorSpaceKHR m_vkColorSpace    = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    bool            m_vkColorSpaceSet = false;
 
 #if PLATFORM_ANDROID
     // Surface extent corresponding to identity transform. We have to store this value,
