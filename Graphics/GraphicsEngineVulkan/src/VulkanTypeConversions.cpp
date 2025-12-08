@@ -478,7 +478,62 @@ TEXTURE_FORMAT VkFormatToTexFormat(VkFormat VkFmt)
     return FmtMapper[VkFmt];
 }
 
+VkColorSpaceKHR ColorSpaceToVkColorSpace(COLOR_SPACE ColorSpace)
+{
+    static_assert(COLOR_SPACE_NUM_COLOR_SPACES == 17, "Please update the switch below to handle the new color space");
+    switch (ColorSpace)
+    {
+        // clang-format off
+        case COLOR_SPACE_UNKNOWN:                  return VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+        case COLOR_SPACE_SRGB_NONLINEAR:           return VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+        case COLOR_SPACE_EXTENDED_SRGB_LINEAR:     return VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT;
+        case COLOR_SPACE_EXTENDED_SRGB_NONLINEAR:  return VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT;
+        case COLOR_SPACE_DISPLAY_P3_NONLINEAR:     return VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT;
+        case COLOR_SPACE_DISPLAY_P3_LINEAR:        return VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT;
+        case COLOR_SPACE_DCI_P3_NONLINEAR:         return VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT;
+        case COLOR_SPACE_BT709_LINEAR:             return VK_COLOR_SPACE_BT709_LINEAR_EXT;
+        case COLOR_SPACE_BT709_NONLINEAR:          return VK_COLOR_SPACE_BT709_NONLINEAR_EXT;
+        case COLOR_SPACE_BT2020_LINEAR:            return VK_COLOR_SPACE_BT2020_LINEAR_EXT;
+        case COLOR_SPACE_HDR10_ST2084:             return VK_COLOR_SPACE_HDR10_ST2084_EXT;
+        case COLOR_SPACE_HDR10_HLG:                return VK_COLOR_SPACE_HDR10_HLG_EXT;
+        case COLOR_SPACE_DOLBY_VISION:             return VK_COLOR_SPACE_DOLBYVISION_EXT;
+        case COLOR_SPACE_ADOBE_RGB_NONLINEAR:      return VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT;
+        case COLOR_SPACE_ADOBE_RGB_LINEAR:         return VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT;
+        case COLOR_SPACE_PASS_THROUGH:             return VK_COLOR_SPACE_PASS_THROUGH_EXT;
+        case COLOR_SPACE_SCRGB_LINEAR:             return VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT; // scRGB uses same Vk enum
+        // clang-format on
+        default:
+            UNEXPECTED("Unknown color space");
+            return VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    }
+}
 
+COLOR_SPACE VkColorSpaceToColorSpace(VkColorSpaceKHR VkColorSpace)
+{
+    switch (VkColorSpace)
+    {
+        // clang-format off
+        case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR:          return COLOR_SPACE_SRGB_NONLINEAR;
+        case VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT:    return COLOR_SPACE_EXTENDED_SRGB_LINEAR;
+        case VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT: return COLOR_SPACE_EXTENDED_SRGB_NONLINEAR;
+        case VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT:    return COLOR_SPACE_DISPLAY_P3_NONLINEAR;
+        case VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT:       return COLOR_SPACE_DISPLAY_P3_LINEAR;
+        case VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT:        return COLOR_SPACE_DCI_P3_NONLINEAR;
+        case VK_COLOR_SPACE_BT709_LINEAR_EXT:            return COLOR_SPACE_BT709_LINEAR;
+        case VK_COLOR_SPACE_BT709_NONLINEAR_EXT:         return COLOR_SPACE_BT709_NONLINEAR;
+        case VK_COLOR_SPACE_BT2020_LINEAR_EXT:           return COLOR_SPACE_BT2020_LINEAR;
+        case VK_COLOR_SPACE_HDR10_ST2084_EXT:            return COLOR_SPACE_HDR10_ST2084;
+        case VK_COLOR_SPACE_HDR10_HLG_EXT:               return COLOR_SPACE_HDR10_HLG;
+        case VK_COLOR_SPACE_DOLBYVISION_EXT:             return COLOR_SPACE_DOLBY_VISION;
+        case VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT:      return COLOR_SPACE_ADOBE_RGB_NONLINEAR;
+        case VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT:         return COLOR_SPACE_ADOBE_RGB_LINEAR;
+        case VK_COLOR_SPACE_PASS_THROUGH_EXT:            return COLOR_SPACE_PASS_THROUGH;
+        // clang-format on
+        default:
+            UNEXPECTED("Unknown Vulkan color space");
+            return COLOR_SPACE_UNKNOWN;
+    }
+}
 
 VkFormat TypeToVkFormat(VALUE_TYPE ValType, Uint32 NumComponents, Bool bIsNormalized)
 {

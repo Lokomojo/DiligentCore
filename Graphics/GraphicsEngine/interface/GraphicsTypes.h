@@ -935,6 +935,116 @@ DILIGENT_TYPED_ENUM(TEXTURE_FORMAT, Uint16)
     TEX_FORMAT_NUM_FORMATS
 };
 
+/// This enumeration describes available color spaces for swapchain presentation.
+/// It provides an API-agnostic abstraction over the color space enumerations
+/// from Vulkan, DirectX, Metal, and OpenGL.
+///
+/// \sa Vulkan: VkColorSpaceKHR
+///     DirectX: DXGI_COLOR_SPACE_TYPE
+///     Metal: CGColorSpaceRef (via kCGColorSpace* constants)
+///
+DILIGENT_TYPED_ENUM(COLOR_SPACE, Uint8)
+{
+    /// Unknown or unspecified color space. The API will choose a default.
+    COLOR_SPACE_UNKNOWN = 0,
+
+    /// Standard sRGB color space with nonlinear (gamma ~2.2) transfer function.
+    /// This is the most common color space for SDR content.
+    /// Vulkan: VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709
+    /// Metal: kCGColorSpaceSRGB
+    COLOR_SPACE_SRGB_NONLINEAR,
+
+    /// Extended sRGB color space with linear transfer function.
+    /// Allows values outside [0, 1] range for HDR content.
+    /// Vulkan: VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
+    /// Metal: kCGColorSpaceExtendedLinearSRGB
+    COLOR_SPACE_EXTENDED_SRGB_LINEAR,
+
+    /// Extended sRGB color space with nonlinear transfer function.
+    /// Allows values outside [0, 1] range for HDR content with gamma encoding.
+    /// Vulkan: VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 (extended range)
+    /// Metal: kCGColorSpaceExtendedSRGB
+    COLOR_SPACE_EXTENDED_SRGB_NONLINEAR,
+
+    /// Display-P3 color space with nonlinear (sRGB-like) transfer function.
+    /// Wider gamut than sRGB, commonly used on Apple devices and modern displays.
+    /// Vulkan: VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P3
+    /// Metal: kCGColorSpaceDisplayP3
+    COLOR_SPACE_DISPLAY_P3_NONLINEAR,
+
+    /// Display-P3 color space with linear transfer function.
+    /// Vulkan: VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P3
+    /// Metal: kCGColorSpaceExtendedLinearDisplayP3
+    COLOR_SPACE_DISPLAY_P3_LINEAR,
+
+    /// DCI-P3 color space with DCI gamma (~2.6) transfer function.
+    /// Used in digital cinema.
+    /// Vulkan: VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT
+    COLOR_SPACE_DCI_P3_NONLINEAR,
+
+    /// BT.709 color space with linear transfer function.
+    /// Same primaries as sRGB but linear.
+    /// Vulkan: VK_COLOR_SPACE_BT709_LINEAR_EXT
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
+    COLOR_SPACE_BT709_LINEAR,
+
+    /// BT.709 color space with nonlinear transfer function.
+    /// Vulkan: VK_COLOR_SPACE_BT709_NONLINEAR_EXT
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709
+    COLOR_SPACE_BT709_NONLINEAR,
+
+    /// BT.2020 color space with linear transfer function.
+    /// Wide color gamut for UHD/HDR content.
+    /// Vulkan: VK_COLOR_SPACE_BT2020_LINEAR_EXT
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P2020
+    COLOR_SPACE_BT2020_LINEAR,
+
+    /// HDR10 color space: BT.2020 primaries with ST2084 (PQ) transfer function.
+    /// Standard for HDR10 content.
+    /// Vulkan: VK_COLOR_SPACE_HDR10_ST2084_EXT
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020
+    /// Metal: kCGColorSpaceITUR_2100_PQ
+    COLOR_SPACE_HDR10_ST2084,
+
+    /// HDR10 color space with Hybrid Log-Gamma (HLG) transfer function.
+    /// Alternative HDR standard, backward compatible with SDR.
+    /// Vulkan: VK_COLOR_SPACE_HDR10_HLG_EXT
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020
+    /// Metal: kCGColorSpaceITUR_2100_HLG
+    COLOR_SPACE_HDR10_HLG,
+
+    /// Dolby Vision color space.
+    /// Vulkan: VK_COLOR_SPACE_DOLBYVISION_EXT
+    /// DirectX: Not directly supported
+    COLOR_SPACE_DOLBY_VISION,
+
+    /// Adobe RGB color space with gamma 2.2 transfer function.
+    /// Vulkan: VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT
+    COLOR_SPACE_ADOBE_RGB_NONLINEAR,
+
+    /// Adobe RGB color space with linear transfer function.
+    /// Vulkan: VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT
+    COLOR_SPACE_ADOBE_RGB_LINEAR,
+
+    /// Pass-through color space, no color space conversion is performed.
+    /// Vulkan: VK_COLOR_SPACE_PASS_THROUGH_EXT
+    COLOR_SPACE_PASS_THROUGH,
+
+    /// scRGB color space with linear transfer function.
+    /// Extended range linear RGB, commonly used for HDR on Windows.
+    /// DirectX: DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 (with float format)
+    /// Note: scRGB uses the same primaries as sRGB but allows negative and >1 values.
+    COLOR_SPACE_SCRGB_LINEAR,
+
+    /// Helper member containing the total number of color spaces in the enumeration
+    COLOR_SPACE_NUM_COLOR_SPACES
+};
+
 /// Filter type
 
 /// This enumeration defines filter type. It is used by SamplerDesc structure to define min, mag and mip filters.
@@ -1516,6 +1626,11 @@ struct SwapChainDesc
     /// Indicates if this is a primary swap chain. When Present() is called
     /// for the primary swap chain, the engine releases stale resources.
     Bool  IsPrimary                     DEFAULT_INITIALIZER(true);
+
+    /// Requests a specific color space to be used for the surface,
+    /// If set to Unknown, or if the color space is unavailable, an appropriate
+    /// default will be used based on the color format.
+    COLOR_SPACE ColorSpace              DEFAULT_INITIALIZER(COLOR_SPACE_UNKNOWN);
 
 #if DILIGENT_CPP_INTERFACE
     constexpr SwapChainDesc() noexcept

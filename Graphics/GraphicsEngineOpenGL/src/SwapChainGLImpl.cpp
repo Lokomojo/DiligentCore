@@ -60,6 +60,7 @@ SwapChainGLImpl::SwapChainGLImpl(IReferenceCounters*       pRefCounters,
         LOG_WARNING_MESSAGE("Changing the swap chain color format to ", GetTextureFormatAttribs(ColorFmt).Name, " because sRGB framebuffers are not enabled.");
         m_SwapChainDesc.ColorBufferFormat = ColorFmt;
     }
+    m_SwapChainDesc.ColorSpace = COLOR_SPACE_SRGB_NONLINEAR;
 
     if (m_DesiredPreTransform != SURFACE_TRANSFORM_OPTIMAL &&
         m_DesiredPreTransform != SURFACE_TRANSFORM_IDENTITY)

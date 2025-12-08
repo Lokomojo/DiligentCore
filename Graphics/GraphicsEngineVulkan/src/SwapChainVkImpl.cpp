@@ -190,13 +190,31 @@ void SwapChainVkImpl::CreateVulkanSwapChain()
     else
     {
         bool FmtFound = false;
-        for (const VkSurfaceFormatKHR& SrfFmt : SupportedFormats)
+
+        if (m_SwapChainDesc.ColorSpace != COLOR_SPACE_UNKNOWN)
         {
-            if (SrfFmt.format == m_VkColorFormat)
+            auto requestedColorSpace = ColorSpaceToVkColorSpace(m_SwapChainDesc.ColorSpace);
+            for (const VkSurfaceFormatKHR& SrfFmt : SupportedFormats)
             {
-                FmtFound   = true;
-                ColorSpace = SrfFmt.colorSpace;
-                break;
+                if (SrfFmt.format == m_VkColorFormat && SrfFmt.colorSpace == requestedColorSpace)
+                {
+                    FmtFound   = true;
+                    ColorSpace = SrfFmt.colorSpace;
+                    break;
+                }
+            }
+        }
+
+        if (!FmtFound)
+        {
+            for (const VkSurfaceFormatKHR& SrfFmt : SupportedFormats)
+            {
+                if (SrfFmt.format == m_VkColorFormat)
+                {
+                    FmtFound   = true;
+                    ColorSpace = SrfFmt.colorSpace;
+                    break;
+                }
             }
         }
         if (!FmtFound)
@@ -233,7 +251,8 @@ void SwapChainVkImpl::CreateVulkanSwapChain()
             }
             else
             {
-                LOG_WARNING_MESSAGE("Requested color buffer format ", GetTextureFormatAttribs(m_SwapChainDesc.ColorBufferFormat).Name, "is not supported by the surface");
+                // If we contiue without selecting a valiid buffer format, we may crash, better throw which is handled upstream
+                throw std::runtime_error("Requested color buffer format is not supported by the surface");
             }
         }
     }
@@ -416,6 +435,7 @@ void SwapChainVkImpl::CreateVulkanSwapChain()
 
     VkSwapchainKHR oldSwapchain = m_VkSwapChain;
     m_VkSwapChain               = VK_NULL_HANDLE;
+    m_SwapChainDesc.ColorSpace        = VkColorSpaceToColorSpace(ColorSpace);
 
     VkSwapchainCreateInfoKHR swapchain_ci = {};
 

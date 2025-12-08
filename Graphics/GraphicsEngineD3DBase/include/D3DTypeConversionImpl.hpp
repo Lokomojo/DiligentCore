@@ -36,7 +36,6 @@
 
 namespace Diligent
 {
-
 template <typename D3D_COMPARISON_FUNC>
 inline D3D_COMPARISON_FUNC ComparisonFuncToD3DComparisonFunc(COMPARISON_FUNCTION Func)
 {

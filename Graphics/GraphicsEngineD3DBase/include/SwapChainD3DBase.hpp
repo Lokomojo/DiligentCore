@@ -33,6 +33,8 @@
 #include "GraphicsAccessories.hpp"
 #include "D3DErrors.hpp"
 
+#include <dxgi1_4.h>
+
 /// \file
 /// Base implementation of a D3D swap chain
 
@@ -267,6 +269,79 @@ protected:
 
         hr = pSwapChain1.QueryInterface(&m_pSwapChain);
         CHECK_D3D_RESULT_THROW(hr, "Failed to query the required swap chain interface");
+
+        CComPtr<IDXGISwapChain3> pSwapChain3;
+        if (SUCCEEDED(pSwapChain1.QueryInterface(&pSwapChain3)))
+        {
+            DXGI_COLOR_SPACE_TYPE selectedColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+            bool colorSpaceSet = false;
+
+            if (m_SwapChainDesc.ColorSpace != COLOR_SPACE_UNKNOWN)
+            {
+                DXGI_COLOR_SPACE_TYPE requestedColorSpace = ColorSpaceToDXGIColorSpace(m_SwapChainDesc.ColorSpace);
+                UINT colorSpaceSupport = 0;
+                if (SUCCEEDED(pSwapChain3->CheckColorSpaceSupport(requestedColorSpace, &colorSpaceSupport)) &&
+                    (colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT))
+                {
+                    hr = pSwapChain3->SetColorSpace1(requestedColorSpace);
+                    if (SUCCEEDED(hr))
+                    {
+                        selectedColorSpace = requestedColorSpace;
+                        colorSpaceSet = true;
+                    }
+                }
+            }
+
+            if (!colorSpaceSet)
+            {
+                DXGI_COLOR_SPACE_TYPE preferredColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+                switch (swapChainDesc.Format)
+                {
+                    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+                        preferredColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+                        break;
+                    case DXGI_FORMAT_R10G10B10A2_UNORM:
+                        preferredColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+                        break;
+                    default:
+                        preferredColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+                        break;
+                }
+
+                UINT colorSpaceSupport = 0;
+                if (SUCCEEDED(pSwapChain3->CheckColorSpaceSupport(preferredColorSpace, &colorSpaceSupport)) &&
+                    (colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT))
+                {
+                    hr = pSwapChain3->SetColorSpace1(preferredColorSpace);
+                    if (SUCCEEDED(hr))
+                    {
+                        selectedColorSpace = preferredColorSpace;
+                        colorSpaceSet = true;
+                    }
+                }
+
+                if (!colorSpaceSet && preferredColorSpace != DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709)
+                {
+                    if (SUCCEEDED(pSwapChain3->CheckColorSpaceSupport(DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709, &colorSpaceSupport)) &&
+                        (colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT))
+                    {
+                        hr = pSwapChain3->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
+                        if (SUCCEEDED(hr))
+                        {
+                            selectedColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+                            colorSpaceSet = true;
+                        }
+                    }
+                }
+            }
+
+            m_SwapChainDesc.ColorSpace = DXGIColorSpaceToColorSpace(selectedColorSpace);
+        }
+        else
+        {
+            // IDXGISwapChain3 not available (Windows 8.1 or earlier), assume sRGB
+            m_SwapChainDesc.ColorSpace = COLOR_SPACE_SRGB_NONLINEAR;
+        }
 
         if ((swapChainDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) != 0)
         {

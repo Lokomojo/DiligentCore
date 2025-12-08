@@ -41,6 +41,9 @@ namespace Diligent
 VkFormat       TexFormatToVkFormat(TEXTURE_FORMAT TexFmt);
 TEXTURE_FORMAT VkFormatToTexFormat(VkFormat VkFmt);
 
+VkColorSpaceKHR ColorSpaceToVkColorSpace(COLOR_SPACE ColorSpace);
+COLOR_SPACE     VkColorSpaceToColorSpace(VkColorSpaceKHR VkColorSpace);
+
 VkFormat    TypeToVkFormat(VALUE_TYPE ValType, Uint32 NumComponents, Bool bIsNormalized);
 VkIndexType TypeToVkIndexType(VALUE_TYPE IndexType);
 

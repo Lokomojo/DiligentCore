@@ -33,6 +33,164 @@
 namespace Diligent
 {
 
+DXGI_COLOR_SPACE_TYPE ColorSpaceToDXGIColorSpace(COLOR_SPACE ColorSpace)
+{
+    switch (ColorSpace)
+    {
+        case COLOR_SPACE_SRGB_NONLINEAR:
+            return DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+        case COLOR_SPACE_EXTENDED_SRGB_LINEAR:
+            return DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+
+        case COLOR_SPACE_EXTENDED_SRGB_NONLINEAR:
+            // DXGI doesn't distinguish extended vs non-extended for nonlinear
+            // The "extended" behavior comes from using a float format
+            return DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+        case COLOR_SPACE_DISPLAY_P3_NONLINEAR:
+            // DXGI has no Display-P3 primaries
+            // Fall back to sRGB (same transfer function, narrower gamut)
+            return DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+        case COLOR_SPACE_DISPLAY_P3_LINEAR:
+            // DXGI has no Display-P3 primaries
+            // Fall back to linear sRGB
+            return DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+
+        case COLOR_SPACE_DCI_P3_NONLINEAR:
+            // DXGI has no DCI-P3 (gamma 2.6)
+            // Fall back to sRGB
+            return DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+        case COLOR_SPACE_BT709_LINEAR:
+            // BT.709 primaries are the same as sRGB
+            return DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+
+        case COLOR_SPACE_BT709_NONLINEAR:
+            // BT.709 transfer function is very close to sRGB
+            return DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+        case COLOR_SPACE_BT2020_LINEAR:
+            // DXGI has no linear BT.2020 for full range RGB
+            // Use HDR10 PQ as closest wide-gamut alternative
+            return DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+
+        case COLOR_SPACE_HDR10_ST2084:
+            return DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+
+        case COLOR_SPACE_HDR10_HLG:
+            // DXGI has no direct HLG for RGB
+            // G22 with P2020 primaries is the closest approximation
+            return DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020;
+
+        case COLOR_SPACE_DOLBY_VISION:
+            // Dolby Vision not directly supported in DXGI
+            // Fall back to HDR10 PQ
+            return DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+
+        case COLOR_SPACE_ADOBE_RGB_NONLINEAR:
+            // DXGI has no Adobe RGB primaries
+            // Fall back to sRGB (similar gamma, narrower gamut)
+            return DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+        case COLOR_SPACE_ADOBE_RGB_LINEAR:
+            // DXGI has no Adobe RGB primaries
+            // Fall back to linear sRGB
+            return DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+
+        case COLOR_SPACE_PASS_THROUGH:
+            // No transformation - use sRGB as neutral default
+            return DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+        case COLOR_SPACE_SCRGB_LINEAR:
+            // scRGB is linear with BT.709/sRGB primaries, extended range via float format
+            return DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+
+        case COLOR_SPACE_UNKNOWN:
+        default:
+            return DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+    }
+}
+
+COLOR_SPACE DXGIColorSpaceToColorSpace(DXGI_COLOR_SPACE_TYPE DXGIColorSpace)
+{
+    switch (DXGIColorSpace)
+    {
+        // Full range RGB formats
+        case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709:
+            return COLOR_SPACE_SRGB_NONLINEAR;
+
+        case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:
+            // Could be EXTENDED_SRGB_LINEAR, BT709_LINEAR, or SCRGB_LINEAR
+            // They all map to the same DXGI value; choose scRGB as it's most descriptive for HDR
+            return COLOR_SPACE_SCRGB_LINEAR;
+
+        case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020:
+            return COLOR_SPACE_HDR10_ST2084;
+
+        case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020:
+            // BT.2020 primaries with gamma 2.2
+            // Closest to HLG conceptually (wide gamut, SDR-compatible transfer)
+            return COLOR_SPACE_HDR10_HLG;
+
+        // Studio range RGB formats (limited range 16-235)
+        case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709:
+            // Studio range sRGB - map to regular sRGB (application should handle range)
+            return COLOR_SPACE_SRGB_NONLINEAR;
+
+        case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020:
+            // Studio range BT.2020 with gamma 2.2
+            return COLOR_SPACE_HDR10_HLG;
+
+        case DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020:
+            // Studio range HDR10
+            return COLOR_SPACE_HDR10_ST2084;
+
+        case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:
+            // Studio range, gamma 2.4, BT.709 - used for some broadcast
+            return COLOR_SPACE_BT709_NONLINEAR;
+
+        case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:
+            // Studio range, gamma 2.4, BT.2020
+            return COLOR_SPACE_HDR10_HLG;
+
+        // YCbCr formats - these are typically for video, not swap chains
+        // Map them to reasonable RGB equivalents based on primaries..
+        case DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601:
+        case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601:
+        case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601:
+        case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709:
+        case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709:
+        case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709:
+            // BT.601/709 YCbCr -> sRGB
+            return COLOR_SPACE_SRGB_NONLINEAR;
+
+        case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020:
+        case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020:
+        case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020:
+        case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020:
+        case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020:
+            // BT.2020 YCbCr with gamma -> HLG-ish
+            return COLOR_SPACE_HDR10_HLG;
+
+        case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020:
+        case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020:
+            // BT.2020 YCbCr with PQ -> HDR10
+            return COLOR_SPACE_HDR10_ST2084;
+
+        case DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020:
+        case DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020:
+            // Actual HLG YCbCr
+            return COLOR_SPACE_HDR10_HLG;
+
+        case DXGI_COLOR_SPACE_RESERVED:
+        case DXGI_COLOR_SPACE_CUSTOM:
+        default:
+            return COLOR_SPACE_SRGB_NONLINEAR;
+    }
+}
+
 DXGI_FORMAT TypeToDXGI_Format(VALUE_TYPE ValType, Uint32 NumComponents, Bool bIsNormalized)
 {
     switch (ValType)
