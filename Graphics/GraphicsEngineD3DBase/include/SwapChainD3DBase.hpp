@@ -182,6 +182,11 @@ protected:
             swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
 #endif
 
+        if (m_SwapChainDesc.StretchSurface)
+        {
+            swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
+        }
+
         // DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL is the flip presentation model, where the contents of the back
         // buffer is preserved after the call to Present. This flag cannot be used with multisampling.
         // The only swap effect that supports multisampling is DXGI_SWAP_EFFECT_DISCARD.

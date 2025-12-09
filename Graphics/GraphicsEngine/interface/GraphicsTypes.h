@@ -1632,6 +1632,9 @@ struct SwapChainDesc
     /// default will be used based on the color format.
     COLOR_SPACE ColorSpace              DEFAULT_INITIALIZER(COLOR_SPACE_UNKNOWN);
 
+    /// Allow DXGI to stretch the surface as the window is resized
+    Bool StretchSurface                 DEFAULT_INITIALIZER(false);
+
 #if DILIGENT_CPP_INTERFACE
     constexpr SwapChainDesc() noexcept
     {
