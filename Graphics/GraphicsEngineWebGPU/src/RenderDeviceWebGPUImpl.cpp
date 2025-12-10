@@ -118,7 +118,11 @@ RenderDeviceWebGPUImpl::RenderDeviceWebGPUImpl(IReferenceCounters* pRefCounters,
     GLSLangUtils::InitializeGlslang();
 #endif
 
-    InitShaderCompilationThreadPool(EngineCI.pAsyncShaderCompilationThreadPool, EngineCI.NumAsyncShaderCompilationThreads);
+    InitShaderCompilationThreadPool(EngineCI.pAsyncShaderCompilationThreadPool,
+                                    EngineCI.NumAsyncShaderCompilationThreads,
+                                    EngineCI.AsyncThreadStartedCallback,
+                                    EngineCI.pAsyncThreadCallbackUserData,
+                                    EngineCI.AsyncThreadName);
 }
 
 RenderDeviceWebGPUImpl::~RenderDeviceWebGPUImpl()

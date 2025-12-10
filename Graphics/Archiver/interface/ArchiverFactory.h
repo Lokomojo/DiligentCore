@@ -240,6 +240,18 @@ struct SerializationDeviceCreateInfo
     /// thread pool is used instead.
     Uint32 NumAsyncShaderCompilationThreads DEFAULT_INITIALIZER(0);
 
+    /// Optional callback invoked when a thread is created in the internal async shader compilation thread pool.
+
+    /// Callback receives the thread id, a name hint, a string describing the pool type, and user data.
+    /// Only used when the default thread pool is created by the serialization device.
+    void (*AsyncThreadStartedCallback)(Uint32 ThreadId, const Char* ThreadName, const Char* ThreadPoolType, void* pUserData) DEFAULT_INITIALIZER(nullptr);
+
+    /// Optional user data passed to AsyncThreadStartedCallback.
+    void* pAsyncThreadCallbackUserData DEFAULT_INITIALIZER(nullptr);
+
+    /// Optional name hint passed to AsyncThreadStartedCallback. If null, a default name will be used.
+    const Char* AsyncThreadName DEFAULT_INITIALIZER("DiligentShaderWorker");
+
 #if DILIGENT_CPP_INTERFACE
     SerializationDeviceCreateInfo() noexcept
     {

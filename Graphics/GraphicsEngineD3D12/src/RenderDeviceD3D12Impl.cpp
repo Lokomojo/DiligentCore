@@ -277,7 +277,11 @@ RenderDeviceD3D12Impl::RenderDeviceD3D12Impl(IReferenceCounters*          pRefCo
             }
         }
 
-        InitShaderCompilationThreadPool(EngineCI.pAsyncShaderCompilationThreadPool, EngineCI.NumAsyncShaderCompilationThreads);
+        InitShaderCompilationThreadPool(EngineCI.pAsyncShaderCompilationThreadPool,
+                                        EngineCI.NumAsyncShaderCompilationThreads,
+                                        EngineCI.AsyncThreadStartedCallback,
+                                        EngineCI.pAsyncThreadCallbackUserData,
+                                        EngineCI.AsyncThreadName);
     }
     catch (...)
     {

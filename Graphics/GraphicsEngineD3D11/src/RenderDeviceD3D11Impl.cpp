@@ -130,7 +130,11 @@ RenderDeviceD3D11Impl::RenderDeviceD3D11Impl(IReferenceCounters*          pRefCo
     // Initialize device features
     m_DeviceInfo.Features = EnableDeviceFeatures(m_AdapterInfo.Features, EngineCI.Features);
 
-    InitShaderCompilationThreadPool(EngineCI.pAsyncShaderCompilationThreadPool, EngineCI.NumAsyncShaderCompilationThreads);
+    InitShaderCompilationThreadPool(EngineCI.pAsyncShaderCompilationThreadPool,
+                                    EngineCI.NumAsyncShaderCompilationThreads,
+                                    EngineCI.AsyncThreadStartedCallback,
+                                    EngineCI.pAsyncThreadCallbackUserData,
+                                    EngineCI.AsyncThreadName);
 }
 
 RenderDeviceD3D11Impl::~RenderDeviceD3D11Impl()

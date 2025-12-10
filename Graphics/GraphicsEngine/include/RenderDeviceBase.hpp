@@ -388,7 +388,11 @@ public:
 protected:
     virtual void TestTextureFormat(TEXTURE_FORMAT TexFormat) = 0;
 
-    void InitShaderCompilationThreadPool(IThreadPool* pShaderCompilationThreadPool, Uint32 NumThreads)
+    void InitShaderCompilationThreadPool(IThreadPool* pShaderCompilationThreadPool,
+                                         Uint32       NumThreads,
+                                         void (*ThreadStartedCallback)(Uint32 ThreadId, const Char* ThreadName, const Char* ThreadPoolType, void* pUserData) = nullptr,
+                                         void* pThreadCallbackUserData = nullptr,
+                                         const Char* ThreadName = "DiligentShaderWorker")
     {
         if (!m_DeviceInfo.Features.AsyncShaderCompilation)
             return;
@@ -411,6 +415,15 @@ protected:
             {
                 ThreadPoolCI.NumThreads = (std::min)(NumThreads, (std::max)(NumCores * 4, 128u));
             }
+
+            if (ThreadStartedCallback != nullptr)
+            {
+                const Char* const NameHint = ThreadName != nullptr ? ThreadName : "DiligentShaderWorker";
+                ThreadPoolCI.OnThreadStarted = [ThreadStartedCallback, pThreadCallbackUserData, Name = NameHint](Uint32 ThreadId) {
+                    ThreadStartedCallback(ThreadId, Name, "AsyncShaderCompilation", pThreadCallbackUserData);
+                };
+            }
+
             m_pShaderCompilationThreadPool = CreateThreadPool(ThreadPoolCI);
         }
     }

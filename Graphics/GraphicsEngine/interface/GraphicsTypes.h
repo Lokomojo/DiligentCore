@@ -3658,6 +3658,21 @@ struct EngineCreateInfo
     /// function.
     Uint32 NumAsyncShaderCompilationThreads DEFAULT_INITIALIZER(0xFFFFFFFFu);
 
+    /// Optional callback that will be invoked from each newly created thread in the async shader compilation thread pool.
+
+    /// This enables applications to perform per-thread initialization such as naming the thread for debugging tools.
+    /// The callback is only used for threads created by the default thread pool. If a custom thread pool is supplied
+    /// via pAsyncShaderCompilationThreadPool, it is the application's responsibility to configure that pool.
+    ///
+    /// The callback receives the thread id, a name hint, and a string identifying the thread pool type.
+    void (*AsyncThreadStartedCallback)(Uint32 ThreadId, const Char* ThreadName, const Char* ThreadPoolType, void* pUserData) DEFAULT_INITIALIZER(nullptr);
+
+    /// Optional user data that will be passed to AsyncThreadStartedCallback.
+    void* pAsyncThreadCallbackUserData DEFAULT_INITIALIZER(nullptr);
+
+    /// Optional name hint passed to AsyncThreadStartedCallback. If null, a default name will be used.
+    const Char* AsyncThreadName DEFAULT_INITIALIZER("DiligentShaderWorker");
+
     // The structure must be 8-byte aligned
     Uint32 Padding DEFAULT_INITIALIZER(0);
 

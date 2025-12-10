@@ -145,7 +145,11 @@ SerializationDeviceImpl::SerializationDeviceImpl(IReferenceCounters* pRefCounter
         }
     }
 
-    InitShaderCompilationThreadPool(CreateInfo.pAsyncShaderCompilationThreadPool, CreateInfo.NumAsyncShaderCompilationThreads);
+    InitShaderCompilationThreadPool(CreateInfo.pAsyncShaderCompilationThreadPool,
+                                    CreateInfo.NumAsyncShaderCompilationThreads,
+                                    CreateInfo.AsyncThreadStartedCallback,
+                                    CreateInfo.pAsyncThreadCallbackUserData,
+                                    CreateInfo.AsyncThreadName);
 }
 
 SerializationDeviceImpl::~SerializationDeviceImpl()

@@ -204,7 +204,11 @@ RenderDeviceVkImpl::RenderDeviceVkImpl(IReferenceCounters*                      
     for (Uint32 fmt = 1; fmt < m_TextureFormatsInfo.size(); ++fmt)
         m_TextureFormatsInfo[fmt].Supported = true; // We will test every format on a specific hardware device
 
-    InitShaderCompilationThreadPool(EngineCI.pAsyncShaderCompilationThreadPool, EngineCI.NumAsyncShaderCompilationThreads);
+    InitShaderCompilationThreadPool(EngineCI.pAsyncShaderCompilationThreadPool,
+                                    EngineCI.NumAsyncShaderCompilationThreads,
+                                    EngineCI.AsyncThreadStartedCallback,
+                                    EngineCI.pAsyncThreadCallbackUserData,
+                                    EngineCI.AsyncThreadName);
 }
 
 RenderDeviceVkImpl::~RenderDeviceVkImpl()
